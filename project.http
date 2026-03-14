@@ -1,0 +1,14 @@
+GET http://localhost:5253/api/trends
+Accept: application/json
+
+###
+
+GET http://localhost:5253/api/trends/csharp
+Accept: application/json
+
+###
+
+GET http://localhost:5253/api/group/linux
+Accept: application/json
+
+###
