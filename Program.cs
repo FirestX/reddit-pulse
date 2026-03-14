@@ -21,24 +21,22 @@ public class Program
             { "technology", ["technology", "technews", "tech"] } // technology
         };
 
+        var httpClient = new HttpClient();
+        httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("RedditPulseApp/1.0");
+
         app.MapGet("/api/group/{subGroup}", async (HttpContext httpContext, [FromRoute] string subGroup) =>
         {
             if (!Groups.ContainsKey(subGroup))
-            {
                 return Results.NotFound();
-            }
 
             var subList = Groups[subGroup];
-            using var http = new HttpClient();
-            // Reddit requires a User-Agent
-            http.DefaultRequestHeaders.UserAgent.ParseAdd("RedditPulseApp/1.0");
 
             List<News> newsList = [];
             foreach (var sub in subList)
             {
-                var resp = await http.GetAsync($"https://www.reddit.com/r/{sub}/hot.json");
-                resp.EnsureSuccessStatusCode();
-                await using var stream = await resp.Content.ReadAsStreamAsync();
+                var response = await httpClient.GetAsync($"https://www.reddit.com/r/{sub}/hot.json");
+                response.EnsureSuccessStatusCode();
+                await using var stream = await response.Content.ReadAsStreamAsync();
 
                 using var doc = await JsonDocument.ParseAsync(stream);
                 newsList.AddRange(JsonNewsParse(doc));
@@ -49,13 +47,9 @@ public class Program
 
         app.MapGet("/api/trends", async (HttpContext httpContext) =>
         {
-            using var http = new HttpClient();
-            // Reddit requires a User-Agent
-            http.DefaultRequestHeaders.UserAgent.ParseAdd("RedditPulseApp/1.0");
-
-            var resp = await http.GetAsync("https://www.reddit.com/.json");
-            resp.EnsureSuccessStatusCode();
-            await using var stream = await resp.Content.ReadAsStreamAsync();
+            var response = await httpClient.GetAsync("https://www.reddit.com/.json");
+            response.EnsureSuccessStatusCode();
+            await using var stream = await response.Content.ReadAsStreamAsync();
 
             using var doc = await JsonDocument.ParseAsync(stream);
             var newsList = JsonNewsParse(doc);
@@ -65,12 +59,9 @@ public class Program
 
         app.MapGet("/api/trends/{subreddit}", async (HttpContext httpContext, [FromRoute] string subreddit) =>
         {
-            using var http = new HttpClient();
-            http.DefaultRequestHeaders.UserAgent.ParseAdd("RedditPulseApp/1.0");
-
-            var resp = await http.GetAsync($"https://www.reddit.com/r/{subreddit}/hot.json");
-            resp.EnsureSuccessStatusCode();
-            await using var stream = await resp.Content.ReadAsStreamAsync();
+            var response = await httpClient.GetAsync($"https://www.reddit.com/r/{subreddit}/hot.json");
+            response.EnsureSuccessStatusCode();
+            await using var stream = await response.Content.ReadAsStreamAsync();
 
             using var doc = await JsonDocument.ParseAsync(stream);
             var newsList = JsonNewsParse(doc);
@@ -93,12 +84,12 @@ public class Program
                 if (child.TryGetProperty("data", out var postData))
                 {
                     var id = postData.GetProperty("id").GetString() ?? "";
-                    var titolo = postData.GetProperty("title").GetString() ?? "";
-                    var autore = postData.GetProperty("author").GetString() ?? "";
-                    var numeroUpvote = postData.GetProperty("ups").GetInt32();
-                    var urlImmagine = postData.GetProperty("thumbnail").GetString();
+                    var title = postData.GetProperty("title").GetString() ?? "";
+                    var author = postData.GetProperty("author").GetString() ?? "";
+                    var upvotes = postData.GetProperty("ups").GetInt32();
+                    var imageUrl = postData.GetProperty("thumbnail").GetString();
                     var subreddit = postData.GetProperty("subreddit_name_prefixed").GetString() ?? "";
-                    News news = new(id, titolo, autore, numeroUpvote, urlImmagine, subreddit);
+                    News news = new(id, title, author, upvotes, imageUrl, subreddit);
                     newsList.Add(news);
                 }
             }

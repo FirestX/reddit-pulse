@@ -1,21 +1,21 @@
-﻿namespace project.Entities;
+namespace project.Entities;
 
 public class News
 {
     public string Id { get; set; }
-    public string Titolo { get; set; }
-    public string Autore { get; set; }
-    public int NumeroUpvote { get; set; }
-    public string? UrlImmagine { get; set; }
+    public string Title { get; set; }
+    public string Author { get; set; }
+    public int Upvotes { get; set; }
+    public string? ImageUrl { get; set; }
     public string Subreddit { get; set; }
 
-    public News(string id, string titolo, string autore, int numeroUpvote, string? urlImmagine, string subreddit)
+    public News(string id, string title, string author, int upvotes, string? imageUrl, string subreddit)
     {
         Id = id;
-        Titolo = titolo;
-        Autore = autore;
-        NumeroUpvote = numeroUpvote;
-        UrlImmagine = urlImmagine;
+        Title = title;
+        Author = author;
+        Upvotes = upvotes;
+        ImageUrl = imageUrl;
         Subreddit = subreddit;
     }
 
