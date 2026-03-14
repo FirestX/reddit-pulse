@@ -1,9 +1,4 @@
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text.Json;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using project.Entities;
 
@@ -15,22 +10,16 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        // Add services to the container.
-        builder.Services.AddAuthorization();
-
-
         var app = builder.Build();
 
-        // Configure the HTTP request pipeline.
-
-        app.UseAuthorization();
-
-        Dictionary<string,string[]> Groups = new Dictionary<string, string[]>();
-        Groups.Add("funny", ["funny", "funnyvideos", "Funnymemes", "meme", "memes"]); // funny / memes category
-        Groups.Add("news", ["law", "politics", "news", "worldnews", "UnderReportedNews"]); // political news / generical news
-        Groups.Add("gamning", ["gaming", "pcgaming", "gamingnews", "games", "GamingLeaksAndRumours"]); // gaming
-        Groups.Add("linux", ["unixporn", "linux"]); // linux
-        Groups.Add("technology", ["technology", "technews", "tech"]); // technology
+        Dictionary<string,string[]> Groups = new()
+        {
+            { "funny", ["funny", "funnyvideos", "Funnymemes", "meme", "memes"] }, // funny / memes category
+            { "news", ["law", "politics", "news", "worldnews", "UnderReportedNews"] }, // political news / generical news
+            { "gamning", ["gaming", "pcgaming", "gamingnews", "games", "GamingLeaksAndRumours"] }, // gaming
+            { "linux", ["unixporn", "linux"] }, // linux
+            { "technology", ["technology", "technews", "tech"] } // technology
+        };
 
         app.MapGet("/api/group/{subGroup}", async (HttpContext httpContext, [FromRoute] string subGroup) =>
         {
@@ -44,7 +33,7 @@ public class Program
             // Reddit requires a User-Agent
             http.DefaultRequestHeaders.UserAgent.ParseAdd("RedditPulseApp/1.0");
 
-            List<News> newsList = new List<News>();
+            List<News> newsList = [];
             foreach (var sub in subList)
             {
                 var resp = await http.GetAsync($"https://www.reddit.com/r/{sub}/hot.json");
@@ -55,8 +44,7 @@ public class Program
                 newsList.AddRange(JsonNewsParse(doc));
             }
 
-            // return JSON array of objects { title, author }
-            return Results.Json(newsList);
+            return Results.Ok(newsList);
         });
 
         app.MapGet("/api/trends", async (HttpContext httpContext) =>
@@ -72,14 +60,12 @@ public class Program
             using var doc = await JsonDocument.ParseAsync(stream);
             var newsList = JsonNewsParse(doc);
 
-            // return JSON array of objects { title, author }
-            return Results.Json(newsList);
+            return Results.Ok(newsList);
         });
 
         app.MapGet("/api/trends/{subreddit}", async (HttpContext httpContext, [FromRoute] string subreddit) =>
         {
             using var http = new HttpClient();
-            // Reddit requires a User-Agent
             http.DefaultRequestHeaders.UserAgent.ParseAdd("RedditPulseApp/1.0");
 
             var resp = await http.GetAsync($"https://www.reddit.com/r/{subreddit}/hot.json");
@@ -89,8 +75,7 @@ public class Program
             using var doc = await JsonDocument.ParseAsync(stream);
             var newsList = JsonNewsParse(doc);
 
-            // return JSON array of objects { title, author }
-            return Results.Json(newsList);
+            return Results.Ok(newsList);
         });
 
         app.Run();
@@ -113,7 +98,7 @@ public class Program
                     var numeroUpvote = postData.GetProperty("ups").GetInt32();
                     var urlImmagine = postData.GetProperty("thumbnail").GetString();
                     var subreddit = postData.GetProperty("subreddit_name_prefixed").GetString() ?? "";
-                    News news = new News(id, titolo, autore, numeroUpvote, urlImmagine, subreddit);
+                    News news = new(id, titolo, autore, numeroUpvote, urlImmagine, subreddit);
                     newsList.Add(news);
                 }
             }
