@@ -35,7 +35,7 @@ public class Program
         {
             { "funny", ["funny", "funnyvideos", "Funnymemes", "meme", "memes"] }, // funny / memes category
             { "news", ["law", "politics", "news", "worldnews", "UnderReportedNews"] }, // political news / generical news
-            { "gamning", ["gaming", "pcgaming", "gamingnews", "games", "GamingLeaksAndRumours"] }, // gaming
+            { "gaming", ["gaming", "pcgaming", "gamingnews", "games", "GamingLeaksAndRumours"] }, // gaming
             { "linux", ["unixporn", "linux"] }, // linux
             { "technology", ["technology", "technews", "tech"] } // technology
         };
