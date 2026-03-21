@@ -194,6 +194,59 @@ body {
   font-size: 12px;
   margin-top: 10px;
 }
+/* Stili per le card di testo (senza immagine) */
+.card-text-only {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  cursor: pointer;
+  text-decoration: none;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 32px 24px;
+  min-height: 280px;
+  border: 1px solid rgba(255,255,255,0.05);
+  transition: all 0.2s;
+  position: relative;
+}
+.card-text-only:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(244, 37, 192, 0.3);
+  background-color: rgba(255, 255, 255, 0.08);
+}
+.card-text-only::before {
+  content: '📄';
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.7;
+}
+.card-text-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.card-text-subreddit {
+  color: #f425c0;
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.card-text-title {
+  font-size: 16px;
+  line-height: 1.5;
+  font-weight: 500;
+  color: white;
+}
+.card-text-meta {
+  color: #a1a1aa;
+  font-size: 11px;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
 .card img {
   width: 100%;
   height: 200px;

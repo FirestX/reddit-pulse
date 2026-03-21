@@ -51,12 +51,17 @@ async function fetchNews(category: string): Promise<News[]> {
   return news;
 }
 
-// Ottiene l'URL dell'immagine appropriato o un placeholder
+// Ottiene l'URL dell'immagine appropriato o stringa vuota se non disponibile
 function getImageUrl(news: News): string {
   if (!news.imageUrl || news.imageUrl === 'self' || news.imageUrl === 'default' || news.imageUrl === 'nsfw') {
-    return 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=400&auto=format&fit=crop';
+    return '';
   }
   return news.imageUrl;
+}
+
+// Verifica se il post ha un'immagine valida
+function hasValidImage(news: News): boolean {
+  return !!(news.imageUrl && news.imageUrl !== 'self' && news.imageUrl !== 'default' && news.imageUrl !== 'nsfw');
 }
 
 // Renderizza le card delle notizie
@@ -72,18 +77,33 @@ function renderNews(newsList: News[]) {
     const card = document.createElement('a');
     card.href = `https://reddit.com/comments/${news.id}`;
     card.target = '_blank';
-    card.className = 'card';
     
-    card.innerHTML = `
-      <img src="${getImageUrl(news)}" class="card-image" alt="${news.title}" onerror="this.src='https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=400&auto=format&fit=crop'">
-      <div class="card-content">
-        <span class="card-subreddit">${news.subreddit}</span>
-        <h3 class="card-title">${news.title}</h3>
-        <div class="card-meta">
-          By u/${news.author} • ${news.upvotes} upvotes
+    // Se il post ha un'immagine valida, crea una card con immagine
+    if (hasValidImage(news)) {
+      card.className = 'card';
+      card.innerHTML = `
+        <img src="${getImageUrl(news)}" class="card-image" alt="${news.title}" onerror="this.style.display='none'">
+        <div class="card-content">
+          <span class="card-subreddit">${news.subreddit}</span>
+          <h3 class="card-title">${news.title}</h3>
+          <div class="card-meta">
+            By u/${news.author} • ${news.upvotes} upvotes
+          </div>
         </div>
-      </div>
-    `;
+      `;
+    } else {
+      // Se non c'è immagine, crea una card di testo minimalista
+      card.className = 'card-text-only';
+      card.innerHTML = `
+        <div class="card-text-content">
+          <span class="card-text-subreddit">${news.subreddit}</span>
+          <h3 class="card-text-title">${news.title}</h3>
+          <div class="card-text-meta">
+            By u/${news.author} • ${news.upvotes} upvotes
+          </div>
+        </div>
+      `;
+    }
     
     newsGrid.appendChild(card);
   });
