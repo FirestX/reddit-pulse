@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>NewsPulse - Home</title>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+  <link rel="stylesheet" href="./src/style.css">
+</head>
+<body>
+  <!-- Sidebar di navigazione: permette di passare alla home o alla pagina dei salvati -->
+  <div class="sidebar">
+    <h2 class="logo">NewsPulse</h2>
+    <a href="index.html" class="menu-item active">Home</a>
+    <a href="profilo.html" class="menu-item">Salvati</a>
+  </div>
+
+  <!-- Contenuto principale della home: qui verranno inseriti dinamicamente gli articoli -->
+  <div class="main-content">
+    <h2>Esplora le Notizie</h2>
+    <div id="griglia-notizie" class="news-grid"></div>
+  </div>
+
+  <!-- Script principale dell'app: gestisce caricamento articoli e salvataggi -->
+  <script src="./src/app.ts" type="module"></script>
+</body>
+</html>

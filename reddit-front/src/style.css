@@ -1,0 +1,149 @@
+/* stili base (globali per tutta l'app) */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #22101e;
+  color: white;
+}
+/* layout principale a due colonne (sidebar + contenuto) */
+.app-container {
+  display: flex;
+  height: 100vh;
+}
+.sidebar {
+  width: 250px;
+  padding: 20px;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+.logo {
+  display: flex;
+  align-items: center;
+  color: #f425c0;
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 30px;
+}
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  color: #a1a1aa;
+  text-decoration: none;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+.menu-item.active, .menu-item:hover {
+  background-color: #f425c0;
+  color: white;
+}
+.main-content {
+  flex: 1;
+  padding: 40px;
+  overflow-y: auto;
+}
+.categories {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+.category-btn {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+}
+.category-btn.active {
+  background-color: white;
+  color: black;
+}
+/* griglia delle card (homepage) */
+.news-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+.card {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  text-decoration: none;
+  color: white;
+  display: block;
+}
+.card img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+.card-info {
+  padding: 15px;
+}
+.card-tag {
+  color: #f425c0;
+  font-size: 14px;
+}
+/* stili per la pagina del singolo articolo (articolo.html) */
+.articolo-body {
+  display: flex;
+  justify-content: center;
+}
+.action-sidebar {
+  width: 80px;
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 50px;
+  gap: 30px;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+.action-btn {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: none;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  text-decoration: none;
+}
+.action-btn:hover {
+  background-color: #f425c0;
+}
+/* classe che viene aggiunta tramite JS quando l'utente mette like */
+.action-btn.liked {
+  background-color: #f425c0; 
+}
+/* contenuto principale dell'articolo */
+.articolo-content {
+  max-width: 800px;
+  padding: 40px;
+  margin-left: 80px;
+}
+.articolo-immagine {
+  width: 100%;
+  border-radius: 20px;
+  margin-bottom: 20px;
+}
+.articolo-titolo {
+  font-size: 36px;
+}
+.articolo-autore {
+  color: #a1a1aa;
+  margin-bottom: 30px;
+}
+.articolo-testo {
+  font-size: 18px;
+  line-height: 1.6;
+  color: #d1d5db;
+}

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>NewsPulse - Profilo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+  <link rel="stylesheet" href="./src/style.css">
+</head>
+<body>
+  <!-- Sidebar di navigazione della pagina Profilo/Salvati -->
+  <div class="sidebar">
+    <h2 class="logo">NewsPulse</h2>
+    <a href="index.html" class="menu-item">Home</a>
+    <a href="profilo.html" class="menu-item active">Salvati</a>
+  </div>
+
+  <!-- Contenuto principale: lista degli articoli salvati e area per prendere note personali -->
+  <div class="main-content">
+    <h2 style="margin-bottom: 20px;">Articoli Salvati</h2>
+    
+    <div style="display: flex; gap: 40px; align-items: flex-start;">
+      
+      <!-- Colonna degli articoli salvati -->
+      <div id="griglia-salvati" style="width: 320px; flex-shrink: 0; display: flex; flex-direction: column;">
+      </div>
+
+      <!-- Area note, visibile solo se ci sono articoli salvati -->
+      <div id="blocco-note" style="display: none; flex: 1; background-color: #22101e; padding: 24px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);">
+        <h3 style="margin-bottom: 8px;">Le mie note</h3>
+        <p style="color: #a1a1aa; font-size: 14px; margin-bottom: 20px;">Perché hai salvato questi articoli?</p>
+        
+        <textarea id="nota-testo" placeholder="Scrivi qui i tuoi commenti o riassunti..." 
+                  style="width: 100%; height: 150px; background: transparent; border: 1px solid #f425c0; color: white; border-radius: 8px; padding: 12px; font-family: inherit; resize: none; outline: none; margin-bottom: 12px;"></textarea>
+        
+        <div style="display: flex; align-items: center; gap: 15px;">
+          <button id="salva-nota" style="background-color: #f425c0; color: white; border: none; padding: 10px 24px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s;">
+            Salva note
+          </button>
+          <span id="nota-conferma" style="color: #4ade80; font-size: 14px; display: none;">✓ Salvato!</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Script principale dell'app che gestisce i salvati e le note -->
+  <script src="./src/app.ts" type="module"></script>
+</body>
+</html>
