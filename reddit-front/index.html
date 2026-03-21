@@ -1,26 +1,54 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>NewsPulse - Home</title>
+  <title>RedditPulse - Home</title>
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
   <link rel="stylesheet" href="./src/style.css">
 </head>
 <body>
-  <!-- Sidebar di navigazione: permette di passare alla home o alla pagina dei salvati -->
-  <div class="sidebar">
-    <h2 class="logo">NewsPulse</h2>
-    <a href="index.html" class="menu-item active">Home</a>
-    <a href="profilo.html" class="menu-item">Salvati</a>
-  </div>
-
-  <!-- Contenuto principale della home: qui verranno inseriti dinamicamente gli articoli -->
+  <!-- Contenuto principale -->
   <div class="main-content">
-    <h2>Esplora le Notizie</h2>
-    <div id="griglia-notizie" class="news-grid"></div>
+    <!-- Header con logo, titolo, ricerca e refresh -->
+    <div class="header-container">
+      <div class="header-left">
+        <h1 class="logo">RedditPulse</h1>
+        <h2 id="page-title" class="page-title">Reddit Trends</h2>
+      </div>
+      <div class="header-right">
+        <div class="search-container">
+          <input 
+            type="text" 
+            id="search-input" 
+            class="search-input"
+            placeholder="Search subreddit..."
+          />
+          <button id="search-btn" class="search-btn">
+            Search
+          </button>
+        </div>
+        <button id="refresh-btn" class="refresh-btn">
+          Refresh
+        </button>
+      </div>
+    </div>
+    
+    <!-- Pulsanti per filtrare le categorie -->
+    <div class="categories-container">
+      <button data-category="trends" class="category-filter-btn active">Trends</button>
+      <button data-category="funny" class="category-filter-btn">Funny</button>
+      <button data-category="news" class="category-filter-btn">News</button>
+      <button data-category="gaming" class="category-filter-btn">Gaming</button>
+      <button data-category="linux" class="category-filter-btn">Linux</button>
+      <button data-category="technology" class="category-filter-btn">Technology</button>
+    </div>
+    <div id="error" class="error-message">
+      <p></p>
+    </div>
+    <div id="news-grid" class="news-grid"></div>
   </div>
 
-  <!-- Script principale dell'app: gestisce caricamento articoli e salvataggi -->
+  <!-- Script principale dell'applicazione -->
   <script src="./src/app.ts" type="module"></script>
 </body>
 </html>
