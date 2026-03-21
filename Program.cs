@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using project.Entities;
 
 namespace project;
@@ -9,8 +10,26 @@ public class Program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+        
+        builder.Services.AddMemoryCache();
+        builder.Services.AddHttpClient("RedditClient", client =>
+        {
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("RedditPulseApp/1.0");
+        });
+        
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowAll", policy =>
+            {
+                policy.AllowAnyOrigin()
+                      .AllowAnyMethod()
+                      .AllowAnyHeader();
+            });
+        });
 
         var app = builder.Build();
+        
+        app.UseCors("AllowAll");
 
         Dictionary<string,string[]> Groups = new()
         {
@@ -21,15 +40,16 @@ public class Program
             { "technology", ["technology", "technews", "tech"] } // technology
         };
 
-        var httpClient = new HttpClient();
-        httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("RedditPulseApp/1.0");
-
-        app.MapGet("/api/group/{subGroup}", async (HttpContext httpContext, [FromRoute] string subGroup) =>
+        app.MapGet("/api/group/{subGroup}", async (IHttpClientFactory httpClientFactory, IMemoryCache cache, [FromRoute] string subGroup) =>
         {
             if (!Groups.ContainsKey(subGroup))
                 return Results.NotFound();
 
+            if (cache.TryGetValue($"group_{subGroup}", out List<News>? cachedNews))
+                return Results.Ok(cachedNews);
+
             var subList = Groups[subGroup];
+            var httpClient = httpClientFactory.CreateClient("RedditClient");
 
             List<News> newsList = [];
             foreach (var sub in subList)
@@ -42,11 +62,16 @@ public class Program
                 newsList.AddRange(JsonNewsParse(doc));
             }
 
+            cache.Set($"group_{subGroup}", newsList, TimeSpan.FromMinutes(5));
             return Results.Ok(newsList);
         });
 
-        app.MapGet("/api/trends", async (HttpContext httpContext) =>
+        app.MapGet("/api/trends", async (IHttpClientFactory httpClientFactory, IMemoryCache cache) =>
         {
+            if (cache.TryGetValue("trends", out List<News>? cachedNews))
+                return Results.Ok(cachedNews);
+
+            var httpClient = httpClientFactory.CreateClient("RedditClient");
             var response = await httpClient.GetAsync("https://www.reddit.com/.json");
             response.EnsureSuccessStatusCode();
             await using var stream = await response.Content.ReadAsStreamAsync();
@@ -54,11 +79,16 @@ public class Program
             using var doc = await JsonDocument.ParseAsync(stream);
             var newsList = JsonNewsParse(doc);
 
+            cache.Set("trends", newsList, TimeSpan.FromMinutes(5));
             return Results.Ok(newsList);
         });
 
-        app.MapGet("/api/trends/{subreddit}", async (HttpContext httpContext, [FromRoute] string subreddit) =>
+        app.MapGet("/api/trends/{subreddit}", async (IHttpClientFactory httpClientFactory, IMemoryCache cache, [FromRoute] string subreddit) =>
         {
+            if (cache.TryGetValue($"trends_{subreddit}", out List<News>? cachedNews))
+                return Results.Ok(cachedNews);
+
+            var httpClient = httpClientFactory.CreateClient("RedditClient");
             var response = await httpClient.GetAsync($"https://www.reddit.com/r/{subreddit}/hot.json");
             response.EnsureSuccessStatusCode();
             await using var stream = await response.Content.ReadAsStreamAsync();
@@ -66,6 +96,7 @@ public class Program
             using var doc = await JsonDocument.ParseAsync(stream);
             var newsList = JsonNewsParse(doc);
 
+            cache.Set($"trends_{subreddit}", newsList, TimeSpan.FromMinutes(5));
             return Results.Ok(newsList);
         });
 
@@ -97,4 +128,6 @@ public class Program
         return newsList;
     }
 }
+
+
 
