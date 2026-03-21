@@ -1,51 +1,108 @@
-/* stili base (globali per tutta l'app) */
+/* Stili base (globali per tutta l'app) */
 body {
   margin: 0;
   font-family: Arial, sans-serif;
   background-color: #22101e;
   color: white;
 }
-/* layout principale a due colonne (sidebar + contenuto) */
-.app-container {
-  display: flex;
-  height: 100vh;
-}
-.sidebar {
-  width: 250px;
-  padding: 20px;
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
-}
-.logo {
-  display: flex;
-  align-items: center;
-  color: #f425c0;
-  font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 30px;
-}
-.menu-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px;
-  color: #a1a1aa;
-  text-decoration: none;
-  border-radius: 8px;
-  margin-bottom: 10px;
-}
-.menu-item.active, .menu-item:hover {
-  background-color: #f425c0;
-  color: white;
-}
+/* Layout principale */
 .main-content {
-  flex: 1;
+  max-width: 1400px;
+  margin: 0 auto;
   padding: 40px;
   overflow-y: auto;
+}
+.logo {
+  color: #f425c0;
+  font-size: 28px;
+  font-weight: bold;
+}
+/* Stili per l'header */
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  gap: 20px;
+}
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+.page-title {
+  margin: 0;
+  color: #d1d5db;
+}
+.header-right {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+/* Stili per la ricerca */
+.search-container {
+  position: relative;
+}
+.search-input {
+  background-color: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: white;
+  padding: 10px 40px 10px 15px;
+  border-radius: 8px;
+  font-size: 14px;
+  width: 250px;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+.search-input:focus {
+  outline: none;
+  border-color: #f425c0;
+  background-color: rgba(255,255,255,0.08);
+}
+.search-input::placeholder {
+  color: #a1a1aa;
+}
+.search-btn {
+  position: absolute;
+  right: 5px;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: #f425c0;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+.search-btn:hover {
+  background-color: #d61ea5;
+}
+.refresh-btn {
+  background-color: #f425c0;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+.refresh-btn:hover {
+  background-color: #d61ea5;
 }
 .categories {
   display: flex;
   gap: 15px;
   margin-bottom: 30px;
+}
+.categories-container {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
 }
 .category-btn {
   background-color: rgba(255, 255, 255, 0.1);
@@ -59,11 +116,44 @@ body {
   background-color: white;
   color: black;
 }
-/* griglia delle card (homepage) */
+.category-filter-btn {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #a1a1aa;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 10px 24px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.category-filter-btn:hover {
+  background-color: rgba(244, 37, 192, 0.2);
+  border-color: #f425c0;
+  color: white;
+}
+.category-filter-btn.active {
+  background-color: #f425c0;
+  color: white;
+  border-color: #f425c0;
+}
+/* Griglia delle card e messaggi */
 .news-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 20px;
+}
+.error-message {
+  display: none;
+  text-align: center;
+  color: #ef4444;
+  padding: 40px;
+}
+.no-posts {
+  color: #a1a1aa;
+  text-align: center;
+  padding: 40px;
 }
 .card {
   background-color: rgba(255, 255, 255, 0.05);
@@ -73,6 +163,36 @@ body {
   text-decoration: none;
   color: white;
   display: block;
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(244, 37, 192, 0.3);
+}
+.card-image {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+.card-content {
+  padding: 16px;
+}
+.card-subreddit {
+  color: #f425c0;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+.card-title {
+  font-size: 18px;
+  margin: 8px 0;
+  line-height: 1.4;
+}
+.card-meta {
+  color: #a1a1aa;
+  font-size: 12px;
+  margin-top: 10px;
 }
 .card img {
   width: 100%;
@@ -86,64 +206,89 @@ body {
   color: #f425c0;
   font-size: 14px;
 }
-/* stili per la pagina del singolo articolo (articolo.html) */
-.articolo-body {
-  display: flex;
-  justify-content: center;
+/* Stili per lo skeleton loading */
+.skeleton-card {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
-.action-sidebar {
-  width: 80px;
-  height: 100vh;
-  position: fixed;
-  left: 0;
-  top: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-top: 50px;
-  gap: 30px;
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
-}
-.action-btn {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: white;
-  border: none;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  text-decoration: none;
-}
-.action-btn:hover {
-  background-color: #f425c0;
-}
-/* classe che viene aggiunta tramite JS quando l'utente mette like */
-.action-btn.liked {
-  background-color: #f425c0; 
-}
-/* contenuto principale dell'articolo */
-.articolo-content {
-  max-width: 800px;
-  padding: 40px;
-  margin-left: 80px;
-}
-.articolo-immagine {
+.skeleton-image {
   width: 100%;
-  border-radius: 20px;
-  margin-bottom: 20px;
+  height: 180px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
 }
-.articolo-titolo {
-  font-size: 36px;
+.skeleton-content {
+  padding: 16px;
 }
-.articolo-autore {
-  color: #a1a1aa;
-  margin-bottom: 30px;
+.skeleton-tag {
+  width: 80px;
+  height: 12px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+  margin-bottom: 8px;
 }
-.articolo-testo {
-  font-size: 18px;
-  line-height: 1.6;
-  color: #d1d5db;
+.skeleton-title {
+  width: 100%;
+  height: 18px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+  margin-bottom: 6px;
+}
+.skeleton-title-2 {
+  width: 75%;
+  height: 18px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+.skeleton-meta {
+  width: 60%;
+  height: 12px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+/* Animazione shimmer */
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
