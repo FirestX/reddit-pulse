@@ -1,208 +1,200 @@
-// Interfaccia che definisce la struttura rigida di una notizia
-// Serve per garantire che ogni articolo abbia tutti i campi necessari (TypeScript)
-interface Notizia {
-  id: number;
-  titolo: string;
-  categoria: string;
-  immagine: string;
-  autore: string;
-  tempo: string;
-  testo: string;
+// Interfaccia che corrisponde al modello News del backend
+interface News {
+  id: string;
+  title: string;
+  author: string;
+  upvotes: number;
+  imageUrl: string | null;
+  subreddit: string;
 }
 
-// Database simulato (Mock DB) contenente tutti gli articoli disponibili
-const notizieDb: Notizia[] = [
-  {
-    id: 1,
-    titolo: "L'Intelligenza Artificiale nel 2025: Come cambierà il nostro modo di lavorare",
-    categoria: "Tecnologia",
-    immagine: "https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=1200&auto=format&fit=crop",
-    autore: "Marco Rossi",
-    tempo: "5 min",
-    testo: "<p style='margin-bottom: 24px;'>L'intelligenza artificiale non è più solo una promessa del futuro... Le aziende stanno integrando l'IA per automatizzare le email e scrivere codice.</p><p>Prepararsi oggi significa assicurarsi un vantaggio competitivo domani.</p>"
-  },
-  {
-    id: 2,
-    titolo: "Nuovi processori quantistici: La fine dei computer tradizionali?",
-    categoria: "Hardware",
-    immagine: "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1200&auto=format&fit=crop",
-    autore: "Laura Bianchi",
-    tempo: "8 min",
-    testo: "<p style='margin-bottom: 24px;'>I laboratori di tutto il mondo stanno facendo passi da gigante nell'informatica quantistica. Un processore quantistico non usa i bit tradizionali (0 e 1), ma i qubit.</p><p>Questo permetterà di risolvere in pochi secondi calcoli che richiederebbero millenni ai supercomputer attuali.</p>"
-  },
-  {
-    id: 3,
-    titolo: "Il design minimalista nelle interfacce di domani",
-    categoria: "Design",
-    immagine: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200&auto=format&fit=crop",
-    autore: "Giulia Neri",
-    tempo: "4 min",
-    testo: "<p style='margin-bottom: 24px;'>Meno è meglio. Il sovraccarico di informazioni ha spinto i designer a creare interfacce sempre più pulite e invisibili.</p><p>L'obiettivo del 2025 è far sparire la tecnologia, lasciando all'utente solo il contenuto puro.</p>"
-  },
-  {
-    id: 4,
-    titolo: "Missione Marte: Trovate tracce di acqua liquida",
-    categoria: "Spazio",
-    immagine: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1200&auto=format&fit=crop",
-    autore: "Luca Verdi",
-    tempo: "10 min",
-    testo: "<p style='margin-bottom: 24px;'>I nuovi rover inviati sul pianeta rosso hanno analizzato il sottosuolo rivelando qualcosa di incredibile. L'acqua non è solo ghiacciata ai poli, ma potrebbe esistere in forma liquida sotto la superficie.</p>"
-  },
-  {
-    id: 5,
-    titolo: "Cybersecurity: I nuovi rischi del Web 3.0",
-    categoria: "Sicurezza",
-    immagine: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=1200&auto=format&fit=crop",
-    autore: "Elena Conti",
-    tempo: "6 min",
-    testo: "<p style='margin-bottom: 24px;'>Con l'evoluzione di internet, cambiano anche gli hacker. Il Web 3.0 decentralizzato porta nuovi vantaggi ma espone gli utenti a truffe molto più sofisticate.</p><p>La sicurezza dei portafogli digitali è ora la priorità numero uno.</p>"
-  },
-  {
-    id: 6,
-    titolo: "Bitcoin supera un nuovo record storico",
-    categoria: "Crypto",
-    immagine: "https://images.unsplash.com/photo-1516245834210-c4c142787335?q=80&w=1200&auto=format&fit=crop",
-    autore: "Andrea Romano",
-    tempo: "3 min",
-    testo: "<p style='margin-bottom: 24px;'>I mercati finanziari sono in subbuglio dopo l'ultima impennata delle criptovalute. Gli investitori istituzionali stanno spostando capitali enormi verso asset digitali.</p>"
+// Configurazione API
+const API_BASE_URL = 'http://localhost:5253';
+
+// Stato corrente dell'applicazione
+let currentCategory: string = 'trends';
+let cachedNews: Map<string, News[]> = new Map();
+
+// Elementi del DOM
+const newsGrid = document.getElementById('news-grid') as HTMLElement;
+const errorEl = document.getElementById('error') as HTMLElement;
+const pageTitle = document.getElementById('page-title') as HTMLElement;
+const refreshBtn = document.getElementById('refresh-btn') as HTMLElement;
+const searchInput = document.getElementById('search-input') as HTMLInputElement;
+const searchBtn = document.getElementById('search-btn') as HTMLElement;
+
+// Recupera le notizie dall'API
+async function fetchNews(category: string): Promise<News[]> {
+  // Controlla prima la cache
+  if (cachedNews.has(category)) {
+    return cachedNews.get(category)!;
   }
-];
 
-// Funzione per recuperare gli ID degli articoli salvati dal LocalStorage
-function getSalvati(): number[] {
-  const salvatiStr = localStorage.getItem('salvati_ids');
-  return salvatiStr ? JSON.parse(salvatiStr) : [];
-}
-
-// Funzione per aggiungere o rimuovere un articolo dai salvati
-function toggleSalvataggio(id: number) {
-  let salvati = getSalvati();
-  if (salvati.includes(id)) {
-    // Se è già salvato, lo rimuoviamo
-    salvati = salvati.filter(savedId => savedId !== id);
+  let apiUrl: string;
+  if (category === 'trends') {
+    apiUrl = `${API_BASE_URL}/api/trends`;
+  } else if (category.startsWith('search:')) {
+    // Gestisce le query di ricerca
+    const subreddit = category.replace('search:', '');
+    apiUrl = `${API_BASE_URL}/api/trends/${subreddit}`;
   } else {
-    // Altrimenti lo aggiungiamo
-    salvati.push(id);
+    apiUrl = `${API_BASE_URL}/api/group/${category}`;
   }
-  // Aggiorniamo la memoria del browser
-  localStorage.setItem('salvati_ids', JSON.stringify(salvati));
+
+  const response = await fetch(apiUrl);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch news: ${response.statusText}`);
+  }
+
+  const news: News[] = await response.json();
+  cachedNews.set(category, news);
+  return news;
 }
 
-// ==========================================
-// LOGICA PER LA HOMEPAGE (index.html)
-// ==========================================
-const grigliaHome = document.getElementById('griglia-notizie');
-if (grigliaHome) {
-  // Generazione dinamica delle card per ogni articolo nel database
-  notizieDb.forEach(notizia => {
-    grigliaHome.innerHTML += `
-      <a href="articolo.html?id=${notizia.id}" class="card" style="border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; overflow: hidden; text-decoration: none; color: white; background-color: #22101e; display: block; transition: transform 0.2s;">
-        <img src="${notizia.immagine}" style="width: 100%; height: 180px; object-fit: cover;">
-        <div style="padding: 16px;">
-          <span style="color: #f425c0; font-size: 12px; font-weight: bold; text-transform: uppercase;">${notizia.categoria}</span>
-          <h3 style="font-size: 18px; margin: 8px 0; line-height: 1.4;">${notizia.titolo}</h3>
-          <div style="color: #a1a1aa; font-size: 12px; margin-top: 10px;">Di ${notizia.autore} • ${notizia.tempo}</div>
+// Ottiene l'URL dell'immagine appropriato o un placeholder
+function getImageUrl(news: News): string {
+  if (!news.imageUrl || news.imageUrl === 'self' || news.imageUrl === 'default' || news.imageUrl === 'nsfw') {
+    return 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=400&auto=format&fit=crop';
+  }
+  return news.imageUrl;
+}
+
+// Renderizza le card delle notizie
+function renderNews(newsList: News[]) {
+  newsGrid.innerHTML = '';
+  
+  if (newsList.length === 0) {
+    newsGrid.innerHTML = '<p class="no-posts">No posts found.</p>';
+    return;
+  }
+
+  newsList.forEach(news => {
+    const card = document.createElement('a');
+    card.href = `https://reddit.com/comments/${news.id}`;
+    card.target = '_blank';
+    card.className = 'card';
+    
+    card.innerHTML = `
+      <img src="${getImageUrl(news)}" class="card-image" alt="${news.title}" onerror="this.src='https://images.unsplash.com/photo-1611162617474-5b21e879e113?q=80&w=400&auto=format&fit=crop'">
+      <div class="card-content">
+        <span class="card-subreddit">${news.subreddit}</span>
+        <h3 class="card-title">${news.title}</h3>
+        <div class="card-meta">
+          By u/${news.author} • ${news.upvotes} upvotes
         </div>
-      </a>
+      </div>
     `;
+    
+    newsGrid.appendChild(card);
   });
 }
 
-// ==========================================
-// LOGICA PER LA PAGINA ARTICOLO (articolo.html)
-// ==========================================
-const containerArticolo = document.getElementById('contenitore-articolo');
-const btnLike = document.getElementById('like-btn');
-
-if (containerArticolo) {
-  // Estraiamo l'ID dell'articolo dall'URL (es. articolo.html?id=2)
-  const params = new URLSearchParams(window.location.search);
-  const currentId = Number(params.get('id'));
+// Renderizza le card skeleton durante il caricamento
+function renderSkeletonCards(count: number = 6) {
+  newsGrid.innerHTML = '';
   
-  // Cerchiamo l'articolo corrispondente nel nostro database
-  const article = notizieDb.find(n => n.id === currentId);
-
-  if (article) {
-    // Popoliamo l'HTML con i dati dell'articolo trovato
-    document.getElementById('art-img')!.setAttribute('src', article.immagine);
-    document.getElementById('art-cat')!.innerText = article.categoria;
-    document.getElementById('art-title')!.innerText = article.titolo;
-    document.getElementById('art-meta')!.innerHTML = `Di <strong>${article.autore}</strong> • ${article.tempo} di lettura`;
-    document.getElementById('art-text')!.innerHTML = article.testo;
-
-    // Gestione del pulsante "Salva articolo"
-    if (btnLike) {
-      // Coloriamo il bottone se l'articolo è già nei preferiti
-      if (getSalvati().includes(article.id)) {
-        btnLike.style.color = '#f425c0';
-      }
-      // Aggiungiamo l'evento click
-      btnLike.addEventListener('click', function() {
-        toggleSalvataggio(article.id);
-        if (getSalvati().includes(article.id)) {
-          btnLike.style.color = '#f425c0'; // Rosa se salvato
-        } else {
-          btnLike.style.color = '#a1a1aa'; // Grigio se rimosso
-        }
-      });
-    }
-  } else {
-    // Fallback se l'ID non esiste
-    containerArticolo.innerHTML = "<h1 style='color: white;'>Articolo non trovato</h1>";
+  for (let i = 0; i < count; i++) {
+    const skeletonCard = document.createElement('div');
+    skeletonCard.className = 'skeleton-card';
+    skeletonCard.innerHTML = `
+      <div class="skeleton-image"></div>
+      <div class="skeleton-content">
+        <div class="skeleton-tag"></div>
+        <div class="skeleton-title"></div>
+        <div class="skeleton-title-2"></div>
+        <div class="skeleton-meta"></div>
+      </div>
+    `;
+    newsGrid.appendChild(skeletonCard);
   }
 }
 
-// ==========================================
-// LOGICA PER IL PROFILO (profilo.html)
-// ==========================================
-const grigliaSalvati = document.getElementById('griglia-salvati');
-const bloccoNote = document.getElementById('blocco-note');
-const textAreaNota = document.getElementById('nota-testo') as HTMLTextAreaElement | null;
-const btnSalvaNota = document.getElementById('salva-nota');
-const notaConferma = document.getElementById('nota-conferma');
+// Carica e mostra le notizie
+async function loadNews(category: string) {
+  currentCategory = category;
+  
+  // Mostra le card skeleton
+  renderSkeletonCards(6);
+  errorEl.style.display = 'none';
+  
+  // Aggiorna il titolo della pagina
+  const titles: { [key: string]: string } = {
+    'trends': 'Reddit Trends',
+    'funny': 'Funny & Memes',
+    'news': 'News & Politics',
+    'gaming': 'Gaming',
+    'linux': 'Linux',
+    'technology': 'Technology'
+  };
+  pageTitle.textContent = titles[category] || 'Reddit Pulse';
 
-if (grigliaSalvati && bloccoNote) {
-  // Recuperiamo gli ID salvati e filtriamo il database
-  const salvatiIds = getSalvati();
-  const savedArticles = notizieDb.filter(n => salvatiIds.includes(n.id));
+  try {
+    const news = await fetchNews(category);
+    renderNews(news);
+  } catch (error) {
+    newsGrid.innerHTML = '';
+    errorEl.style.display = 'block';
+    errorEl.querySelector('p')!.textContent = `Error loading posts: ${error instanceof Error ? error.message : 'Unknown error'}. Make sure the backend is running on ${API_BASE_URL}`;
+    console.error('Error fetching news:', error);
+  }
+}
 
-  if (savedArticles.length > 0) {
-    // Mostriamo gli articoli preferiti
-    savedArticles.forEach(notizia => {
-      grigliaSalvati.innerHTML += `
-        <a href="articolo.html?id=${notizia.id}" class="card" style="border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; display: block; overflow: hidden; text-decoration: none; color: white; background-color: #22101e; margin-bottom: 20px;">
-          <img src="${notizia.immagine}" style="width: 100%; height: 180px; object-fit: cover;">
-          <div style="padding: 16px;">
-              <span style="color: #f425c0; font-size: 12px; font-weight: bold; text-transform: uppercase;">${notizia.categoria}</span>
-              <h3 style="font-size: 18px; margin-top: 8px;">${notizia.titolo}</h3>
-          </div>
-        </a>
-      `;
+// Inizializza l'applicazione
+if (newsGrid) {
+  // Carica la categoria iniziale (trends)
+  loadNews('trends');
+
+  // Gestori per i pulsanti delle categorie
+  const categoryButtons = document.querySelectorAll('.category-filter-btn');
+  categoryButtons.forEach(btn => {
+    btn.addEventListener('click', function(this: HTMLElement) {
+      const category = this.getAttribute('data-category')!;
+      
+      // Aggiorna lo stato attivo
+      categoryButtons.forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      
+      // Carica le notizie per la categoria
+      loadNews(category);
     });
+  });
 
-    // Mostriamo la sezione delle note personali
-    bloccoNote.style.display = 'block';
+  // Gestore per il pulsante refresh
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', function() {
+      // Cancella la cache per la categoria corrente
+      cachedNews.delete(currentCategory);
+      loadNews(currentCategory);
+    });
+  }
 
-    // Carichiamo le note precedenti se esistono
-    if (textAreaNota) {
-      const notaSalvata = localStorage.getItem('nota_personale');
-      if (notaSalvata) {
-        textAreaNota.value = notaSalvata;
+  // Funzionalità di ricerca
+  const performSearch = () => {
+    const searchTerm = searchInput.value.trim();
+    if (!searchTerm) {
+      return;
+    }
+
+    // Rimuove lo stato attivo dai pulsanti delle categorie
+    categoryButtons.forEach(b => b.classList.remove('active'));
+
+    // Carica i risultati della ricerca
+    const searchCategory = `search:${searchTerm}`;
+    loadNews(searchCategory);
+    
+    // Aggiorna il titolo della pagina
+    pageTitle.textContent = `r/${searchTerm}`;
+  };
+
+  if (searchBtn && searchInput) {
+    // Click sul pulsante di ricerca
+    searchBtn.addEventListener('click', performSearch);
+
+    // Tasto Enter nell'input di ricerca
+    searchInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        performSearch();
       }
-    }
-
-    // Gestione salvataggio note
-    if (btnSalvaNota && textAreaNota && notaConferma) {
-      btnSalvaNota.addEventListener('click', function() {
-        localStorage.setItem('nota_personale', textAreaNota.value);
-        notaConferma.style.display = 'inline';
-        setTimeout(() => {
-          notaConferma.style.display = 'none';
-        }, 2000);
-      });
-    }
-  } else {
-    // Messaggio se non ci sono articoli salvati
-    grigliaSalvati.innerHTML = "<p style='color: #a1a1aa;'>Nessun articolo salvato.</p>";
+    });
   }
 }
