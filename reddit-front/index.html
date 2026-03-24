@@ -48,6 +48,49 @@
     <div id="news-grid" class="news-grid"></div>
   </div>
 
+  <!-- Modal for post details -->
+  <div id="post-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div style="flex: 1;">
+          <span id="modal-subreddit" class="modal-subreddit"></span>
+          <h2 id="modal-title" class="modal-title"></h2>
+        </div>
+        <button id="modal-close" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <img id="modal-image" class="modal-image" style="display: none;" />
+        <div id="modal-author" class="modal-author"></div>
+        <div class="modal-meta">
+          <div class="modal-meta-item">
+            <span class="icon">▲</span>
+            <span><span class="value" id="modal-upvotes"></span> upvotes</span>
+          </div>
+          <div class="modal-meta-item" id="modal-comments-container" style="display: none;">
+            <span class="icon">💬</span>
+            <span><span class="value" id="modal-comments"></span> comments</span>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button id="modal-open-reddit" class="modal-btn">
+            <span>🔗</span>
+            Open on Reddit
+          </button>
+          <button id="modal-copy-link" class="modal-btn secondary">
+            <span>📋</span>
+            Copy Link
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast notification -->
+  <div id="toast" class="toast">
+    <span>✓</span>
+    <span id="toast-message">Link copied!</span>
+  </div>
+
   <!-- Script principale dell'applicazione -->
   <script src="./src/app.ts" type="module"></script>
 </body>
