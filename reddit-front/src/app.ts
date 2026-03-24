@@ -1,4 +1,3 @@
-// Interfaccia che corrisponde al modello News del backend
 interface News {
   id: string;
   title: string;
@@ -6,117 +5,162 @@ interface News {
   upvotes: number;
   imageUrl: string | null;
   subreddit: string;
+  commentsCount?: number;
 }
 
-// Configurazione API
+// Configuration
 const API_BASE_URL = 'http://localhost:5253';
+const INVALID_IMAGE_VALUES = ['self', 'default', 'nsfw', ''];
+const CATEGORY_TITLES: Record<string, string> = {
+  trends: 'Reddit Trends',
+  funny: 'Funny & Memes',
+  news: 'News & Politics',
+  gaming: 'Gaming',
+  linux: 'Linux',
+  technology: 'Technology'
+};
 
-// Stato corrente dell'applicazione
-let currentCategory: string = 'trends';
-let cachedNews: Map<string, News[]> = new Map();
+// State
+let currentCategory = 'trends';
+const cachedNews = new Map<string, News[]>();
 
-// Elementi del DOM
-const newsGrid = document.getElementById('news-grid') as HTMLElement;
-const errorEl = document.getElementById('error') as HTMLElement;
-const pageTitle = document.getElementById('page-title') as HTMLElement;
-const refreshBtn = document.getElementById('refresh-btn') as HTMLElement;
-const searchInput = document.getElementById('search-input') as HTMLInputElement;
-const searchBtn = document.getElementById('search-btn') as HTMLElement;
+// DOM Elements
+const elements = {
+  newsGrid: document.getElementById('news-grid')!,
+  error: document.getElementById('error')!,
+  pageTitle: document.getElementById('page-title')!,
+  refreshBtn: document.getElementById('refresh-btn')!,
+  searchInput: document.getElementById('search-input') as HTMLInputElement,
+  searchBtn: document.getElementById('search-btn')!,
+  modal: document.getElementById('post-modal')!,
+  modalClose: document.getElementById('modal-close')!,
+  modalTitle: document.getElementById('modal-title')!,
+  modalSubreddit: document.getElementById('modal-subreddit')!,
+  modalImage: document.getElementById('modal-image') as HTMLImageElement,
+  modalAuthor: document.getElementById('modal-author')!,
+  modalUpvotes: document.getElementById('modal-upvotes')!,
+  modalComments: document.getElementById('modal-comments')!,
+  modalCommentsContainer: document.getElementById('modal-comments-container')!,
+  modalOpenReddit: document.getElementById('modal-open-reddit')!,
+  modalCopyLink: document.getElementById('modal-copy-link')!,
+  toast: document.getElementById('toast')!,
+  toastMessage: document.getElementById('toast-message')!
+};
 
-// Recupera le notizie dall'API
-async function fetchNews(category: string): Promise<News[]> {
-  // Controlla prima la cache
-  if (cachedNews.has(category)) {
-    return cachedNews.get(category)!;
-  }
-
-  let apiUrl: string;
-  if (category === 'trends') {
-    apiUrl = `${API_BASE_URL}/api/trends`;
-  } else if (category.startsWith('search:')) {
-    // Gestisce le query di ricerca
-    const subreddit = category.replace('search:', '');
-    apiUrl = `${API_BASE_URL}/api/trends/${subreddit}`;
-  } else {
-    apiUrl = `${API_BASE_URL}/api/group/${category}`;
-  }
-
-  const response = await fetch(apiUrl);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch news: ${response.statusText}`);
-  }
-
-  const news: News[] = await response.json();
-  cachedNews.set(category, news);
-  return news;
-}
-
-// Ottiene l'URL dell'immagine appropriato o stringa vuota se non disponibile
-function getImageUrl(news: News): string {
-  if (!news.imageUrl || news.imageUrl === 'self' || news.imageUrl === 'default' || news.imageUrl === 'nsfw') {
-    return '';
-  }
+// Utility Functions
+const getImageUrl = (news: News): string => {
+  if (!news.imageUrl || INVALID_IMAGE_VALUES.includes(news.imageUrl)) return '';
   return news.imageUrl;
-}
+};
 
-// Verifica se il post ha un'immagine valida
-function hasValidImage(news: News): boolean {
-  return !!(news.imageUrl && news.imageUrl !== 'self' && news.imageUrl !== 'default' && news.imageUrl !== 'nsfw');
-}
+const hasValidImage = (news: News): boolean => !!getImageUrl(news);
 
-// Renderizza le card delle notizie
-function renderNews(newsList: News[]) {
-  newsGrid.innerHTML = '';
+const getPostUrl = (id: string): string => `https://reddit.com/comments/${id}`;
+
+const getApiUrl = (category: string): string => {
+  if (category === 'trends') return `${API_BASE_URL}/api/trends`;
+  if (category.startsWith('search:')) return `${API_BASE_URL}/api/trends/${category.slice(7)}`;
+  return `${API_BASE_URL}/api/group/${category}`;
+};
+
+// Toast Notification
+const showToast = (message: string): void => {
+  elements.toastMessage.textContent = message;
+  elements.toast.classList.add('show');
+  setTimeout(() => elements.toast.classList.remove('show'), 3000);
+};
+
+// Modal Functions
+const openModal = (news: News): void => {
+  const { modalTitle, modalSubreddit, modalAuthor, modalUpvotes, modalImage, 
+          modalComments, modalCommentsContainer, modalOpenReddit, modalCopyLink, modal } = elements;
   
-  if (newsList.length === 0) {
+  modalTitle.textContent = news.title;
+  modalSubreddit.textContent = `r/${news.subreddit}`;
+  modalAuthor.innerHTML = `Posted by <strong>u/${news.author}</strong>`;
+  modalUpvotes.textContent = news.upvotes.toLocaleString();
+
+  const imageUrl = getImageUrl(news);
+  if (imageUrl) {
+    modalImage.src = imageUrl;
+    modalImage.alt = news.title;
+    modalImage.style.display = 'block';
+    modalImage.onerror = () => { modalImage.style.display = 'none'; };
+  } else {
+    modalImage.style.display = 'none';
+    modalImage.src = '';
+  }
+
+  if (news.commentsCount != null) {
+    modalComments.textContent = news.commentsCount.toLocaleString();
+    modalCommentsContainer.style.display = 'flex';
+  } else {
+    modalCommentsContainer.style.display = 'none';
+  }
+
+  const postUrl = getPostUrl(news.id);
+  modalOpenReddit.onclick = () => window.open(postUrl, '_blank');
+  modalCopyLink.onclick = () => {
+    navigator.clipboard.writeText(postUrl)
+      .then(() => showToast('Link copied to clipboard!'))
+      .catch(() => showToast('Failed to copy link'));
+  };
+
+  modal.classList.add('show');
+  document.body.style.overflow = 'hidden';
+};
+
+const closeModal = (): void => {
+  elements.modal.classList.remove('show');
+  document.body.style.overflow = 'auto';
+};
+
+// Card Rendering
+const createCardHTML = (news: News): string => {
+  const imageUrl = getImageUrl(news);
+  const meta = `By u/${news.author} • ${news.upvotes.toLocaleString()} upvotes`;
+
+  if (imageUrl) {
+    return `
+      <img src="${imageUrl}" class="card-image" alt="${news.title}" onerror="this.style.display='none'">
+      <div class="card-content">
+        <span class="card-subreddit">${news.subreddit}</span>
+        <h3 class="card-title">${news.title}</h3>
+        <div class="card-meta">${meta}</div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="card-text-content">
+      <span class="card-text-subreddit">${news.subreddit}</span>
+      <h3 class="card-text-title">${news.title}</h3>
+      <div class="card-text-meta">${meta}</div>
+    </div>
+  `;
+};
+
+const renderNews = (newsList: News[]): void => {
+  const { newsGrid } = elements;
+  newsGrid.innerHTML = '';
+
+  if (!newsList.length) {
     newsGrid.innerHTML = '<p class="no-posts">No posts found.</p>';
     return;
   }
 
   newsList.forEach(news => {
-    const card = document.createElement('a');
-    card.href = `https://reddit.com/comments/${news.id}`;
-    card.target = '_blank';
-    
-    // Se il post ha un'immagine valida, crea una card con immagine
-    if (hasValidImage(news)) {
-      card.className = 'card';
-      card.innerHTML = `
-        <img src="${getImageUrl(news)}" class="card-image" alt="${news.title}" onerror="this.style.display='none'">
-        <div class="card-content">
-          <span class="card-subreddit">${news.subreddit}</span>
-          <h3 class="card-title">${news.title}</h3>
-          <div class="card-meta">
-            By u/${news.author} • ${news.upvotes} upvotes
-          </div>
-        </div>
-      `;
-    } else {
-      // Se non c'è immagine, crea una card di testo minimalista
-      card.className = 'card-text-only';
-      card.innerHTML = `
-        <div class="card-text-content">
-          <span class="card-text-subreddit">${news.subreddit}</span>
-          <h3 class="card-text-title">${news.title}</h3>
-          <div class="card-text-meta">
-            By u/${news.author} • ${news.upvotes} upvotes
-          </div>
-        </div>
-      `;
-    }
-    
+    const card = document.createElement('div');
+    card.className = hasValidImage(news) ? 'card' : 'card-text-only';
+    card.innerHTML = createCardHTML(news);
+    card.addEventListener('click', () => openModal(news));
     newsGrid.appendChild(card);
   });
-}
+};
 
-// Renderizza le card skeleton durante il caricamento
-function renderSkeletonCards(count: number = 6) {
-  newsGrid.innerHTML = '';
-  
-  for (let i = 0; i < count; i++) {
-    const skeletonCard = document.createElement('div');
-    skeletonCard.className = 'skeleton-card';
-    skeletonCard.innerHTML = `
+const renderSkeletons = (count = 6): void => {
+  elements.newsGrid.innerHTML = Array(count).fill(`
+    <div class="skeleton-card">
       <div class="skeleton-image"></div>
       <div class="skeleton-content">
         <div class="skeleton-tag"></div>
@@ -124,97 +168,84 @@ function renderSkeletonCards(count: number = 6) {
         <div class="skeleton-title-2"></div>
         <div class="skeleton-meta"></div>
       </div>
-    `;
-    newsGrid.appendChild(skeletonCard);
-  }
-}
+    </div>
+  `).join('');
+};
 
-// Carica e mostra le notizie
-async function loadNews(category: string) {
+// API Functions
+const fetchNews = async (category: string): Promise<News[]> => {
+  if (cachedNews.has(category)) return cachedNews.get(category)!;
+
+  const response = await fetch(getApiUrl(category));
+  if (!response.ok) throw new Error(`Failed to fetch: ${response.statusText}`);
+
+  const news: News[] = await response.json();
+  cachedNews.set(category, news);
+  return news;
+};
+
+const loadNews = async (category: string): Promise<void> => {
   currentCategory = category;
-  
-  // Mostra le card skeleton
-  renderSkeletonCards(6);
-  errorEl.style.display = 'none';
-  
-  // Aggiorna il titolo della pagina
-  const titles: { [key: string]: string } = {
-    'trends': 'Reddit Trends',
-    'funny': 'Funny & Memes',
-    'news': 'News & Politics',
-    'gaming': 'Gaming',
-    'linux': 'Linux',
-    'technology': 'Technology'
-  };
-  pageTitle.textContent = titles[category] || 'Reddit Pulse';
+  renderSkeletons();
+  elements.error.style.display = 'none';
+  elements.pageTitle.textContent = CATEGORY_TITLES[category] || 'Reddit Pulse';
 
   try {
-    const news = await fetchNews(category);
-    renderNews(news);
+    renderNews(await fetchNews(category));
   } catch (error) {
-    newsGrid.innerHTML = '';
-    errorEl.style.display = 'block';
-    errorEl.querySelector('p')!.textContent = `Error loading posts: ${error instanceof Error ? error.message : 'Unknown error'}. Make sure the backend is running on ${API_BASE_URL}`;
-    console.error('Error fetching news:', error);
+    elements.newsGrid.innerHTML = '';
+    elements.error.style.display = 'block';
+    elements.error.querySelector('p')!.textContent = 
+      `Error: ${error instanceof Error ? error.message : 'Unknown error'}. Backend: ${API_BASE_URL}`;
   }
-}
+};
 
-// Inizializza l'applicazione
-if (newsGrid) {
-  // Carica la categoria iniziale (trends)
-  loadNews('trends');
-
-  // Gestori per i pulsanti delle categorie
+// Event Handlers
+const setupEventListeners = (): void => {
   const categoryButtons = document.querySelectorAll('.category-filter-btn');
+
+  // Category buttons
   categoryButtons.forEach(btn => {
     btn.addEventListener('click', function(this: HTMLElement) {
-      const category = this.getAttribute('data-category')!;
-      
-      // Aggiorna lo stato attivo
       categoryButtons.forEach(b => b.classList.remove('active'));
       this.classList.add('active');
-      
-      // Carica le notizie per la categoria
-      loadNews(category);
+      loadNews(this.dataset.category!);
     });
   });
 
-  // Gestore per il pulsante refresh
-  if (refreshBtn) {
-    refreshBtn.addEventListener('click', function() {
-      // Cancella la cache per la categoria corrente
-      cachedNews.delete(currentCategory);
-      loadNews(currentCategory);
-    });
-  }
+  // Refresh button
+  elements.refreshBtn.addEventListener('click', () => {
+    cachedNews.delete(currentCategory);
+    loadNews(currentCategory);
+  });
 
-  // Funzionalità di ricerca
-  const performSearch = () => {
-    const searchTerm = searchInput.value.trim();
-    if (!searchTerm) {
-      return;
-    }
-
-    // Rimuove lo stato attivo dai pulsanti delle categorie
-    categoryButtons.forEach(b => b.classList.remove('active'));
-
-    // Carica i risultati della ricerca
-    const searchCategory = `search:${searchTerm}`;
-    loadNews(searchCategory);
+  // Search
+  const performSearch = (): void => {
+    const term = elements.searchInput.value.trim();
+    if (!term) return;
     
-    // Aggiorna il titolo della pagina
-    pageTitle.textContent = `r/${searchTerm}`;
+    document.querySelectorAll('.category-filter-btn').forEach(b => b.classList.remove('active'));
+    elements.pageTitle.textContent = `r/${term}`;
+    loadNews(`search:${term}`);
   };
 
-  if (searchBtn && searchInput) {
-    // Click sul pulsante di ricerca
-    searchBtn.addEventListener('click', performSearch);
+  elements.searchBtn.addEventListener('click', performSearch);
+  elements.searchInput.addEventListener('keypress', e => {
+    if (e.key === 'Enter') performSearch();
+  });
 
-    // Tasto Enter nell'input di ricerca
-    searchInput.addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        performSearch();
-      }
-    });
-  }
+  // Modal
+  elements.modalClose.addEventListener('click', closeModal);
+  elements.modal.addEventListener('click', e => {
+    if (e.target === elements.modal) closeModal();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && elements.modal.classList.contains('show')) closeModal();
+  });
+};
+
+// Initialize
+if (elements.newsGrid) {
+  setupEventListeners();
+  loadNews('trends');
 }
