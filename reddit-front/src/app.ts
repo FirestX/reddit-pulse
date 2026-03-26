@@ -158,7 +158,7 @@ const renderNews = (newsList: News[]): void => {
   });
 };
 
-const renderSkeletons = (count = 6): void => {
+const renderSkeletons = (count = 8): void => {
   elements.newsGrid.innerHTML = Array(count).fill(`
     <div class="skeleton-card">
       <div class="skeleton-image"></div>

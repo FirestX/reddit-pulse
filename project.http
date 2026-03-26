@@ -1,14 +1,184 @@
-GET http://localhost:5253/api/trends
+@baseUrl = http://localhost:5253
+
+###############################################################################
+# 1. HOMEPAGE TRENDS ENDPOINT - /api/trends
+# Fetches trending posts from Reddit's homepage
+###############################################################################
+
+### Normal case - with Accept header
+GET {{baseUrl}}/api/trends
 Accept: application/json
 
-###
+### Without Accept header
+GET {{baseUrl}}/api/trends
 
-GET http://localhost:5253/api/trends/csharp
+### With Accept: */*
+GET {{baseUrl}}/api/trends
+Accept: */*
+
+### With Accept: text/html
+GET {{baseUrl}}/api/trends
+Accept: text/html
+
+###############################################################################
+# 2. SUBREDDIT TRENDS ENDPOINT - /api/trends/{subreddit}
+# Fetches hot/trending posts from a specific subreddit
+###############################################################################
+
+# Normal Cases - Popular Subreddits
+
+### csharp - Small tech community
+GET {{baseUrl}}/api/trends/csharp
 Accept: application/json
 
-###
+### programming - Medium sized community
+GET {{baseUrl}}/api/trends/programming
+Accept: application/json
 
-GET http://localhost:5253/api/group/linux
+### dotnet - .NET community
+GET {{baseUrl}}/api/trends/dotnet
+Accept: application/json
+
+### AskReddit - Very popular, high volume subreddit
+GET {{baseUrl}}/api/trends/AskReddit
+Accept: application/json
+
+# Edge Cases - Case Sensitivity
+
+### CSHARP - Uppercase (Reddit is case-insensitive, should work)
+GET {{baseUrl}}/api/trends/CSHARP
+Accept: application/json
+
+### CsHaRp - Mixed case
+GET {{baseUrl}}/api/trends/CsHaRp
+Accept: application/json
+
+# Edge Cases - Special Characters and Formats
+
+### ELI5 - Subreddit with numbers
+GET {{baseUrl}}/api/trends/ELI5
+Accept: application/json
+
+### cpp_questions - Subreddit with underscores
+GET {{baseUrl}}/api/trends/cpp_questions
+Accept: application/json
+
+### aww - Very short name (3 characters)
+GET {{baseUrl}}/api/trends/aww
+Accept: application/json
+
+### unixporn - Potentially NSFW-sounding name
+GET {{baseUrl}}/api/trends/unixporn
+Accept: application/json
+
+# Edge Cases - Invalid/Non-existent Subreddits
+
+### Non-existent subreddit
+GET {{baseUrl}}/api/trends/nosuchredditshouldexist123456
+Accept: application/json
+
+### Another non-existent subreddit
+GET {{baseUrl}}/api/trends/thisdoesnotexist999
+Accept: application/json
+
+# Edge Cases - Different Accept Headers
+
+### Without Accept header
+GET {{baseUrl}}/api/trends/linux
+
+### With Accept: */*
+GET {{baseUrl}}/api/trends/linux
+Accept: */*
+
+###############################################################################
+# 3. GROUP ENDPOINT - /api/group/{subGroup}
+# Fetches aggregated posts from predefined groups of related subreddits
+# Valid groups: funny, news, gaming, linux, technology
+###############################################################################
+
+# Normal Cases - All Valid Groups
+
+### funny - Aggregates: funny, funnyvideos, Funnymemes, meme, memes
+GET {{baseUrl}}/api/group/funny
+Accept: application/json
+
+### news - Aggregates: law, politics, news, worldnews, UnderReportedNews
+GET {{baseUrl}}/api/group/news
+Accept: application/json
+
+### gaming - Aggregates: gaming, pcgaming, gamingnews, games, GamingLeaksAndRumours
+GET {{baseUrl}}/api/group/gaming
+Accept: application/json
+
+### linux - Aggregates: unixporn, linux
+GET {{baseUrl}}/api/group/linux
+Accept: application/json
+
+### technology - Aggregates: technology, technews, tech
+GET {{baseUrl}}/api/group/technology
+Accept: application/json
+
+# Edge Cases - Case Sensitivity (Dictionary lookup is case-sensitive)
+
+### LINUX - Uppercase
+GET {{baseUrl}}/api/group/LINUX
+Accept: application/json
+
+### LiNuX - Mixed case
+GET {{baseUrl}}/api/group/LiNuX
+Accept: application/json
+
+### FUNNY - Uppercase
+GET {{baseUrl}}/api/group/FUNNY
+Accept: application/json
+
+# Edge Cases - Invalid/Non-existent Groups
+
+### Invalid group name
+GET {{baseUrl}}/api/group/invalidgroup
+Accept: application/json
+
+### tech - Partial match (valid subreddit but not a valid group)
+GET {{baseUrl}}/api/group/tech
+Accept: application/json
+
+### funny123 - Valid prefix but invalid group
+GET {{baseUrl}}/api/group/funny123
+Accept: application/json
+
+### sports - Non-existent group
+GET {{baseUrl}}/api/group/sports
+Accept: application/json
+
+# Edge Cases - Different Accept Headers
+
+### Without Accept header
+GET {{baseUrl}}/api/group/linux
+
+### With Accept: */*
+GET {{baseUrl}}/api/group/technology
+Accept: */*
+
+###############################################################################
+# 4. CACHE TESTING
+# All endpoints use 5-minute in-memory cache
+# Second request within 5 minutes returns cached data
+###############################################################################
+
+### First request - fetches from Reddit API
+GET {{baseUrl}}/api/trends/csharp
+Accept: application/json
+
+### Second request - should return cached data (faster response)
+GET {{baseUrl}}/api/trends/csharp
+Accept: application/json
+
+### Cache test for group endpoint
+GET {{baseUrl}}/api/group/linux
+Accept: application/json
+
+### Second request - cached
+GET {{baseUrl}}/api/group/linux
 Accept: application/json
 
 ###
