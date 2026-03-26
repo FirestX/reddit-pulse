@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Net;
 using Microsoft.Extensions.Caching.Memory;
 using project.Entities;
 
@@ -106,7 +107,8 @@ public class RedditService(IHttpClientFactory httpClientFactory, IMemoryCache ca
             images[0].TryGetProperty("source", out var source) &&
             source.TryGetProperty("url", out var previewUrl))
         {
-            return previewUrl.GetString()?.Replace("&amp;", "&");
+            var url = previewUrl.GetString();
+            return url != null ? WebUtility.HtmlDecode(url) : null;
         }
 
         // Try direct image URL
@@ -114,10 +116,16 @@ public class RedditService(IHttpClientFactory httpClientFactory, IMemoryCache ca
         {
             var url = urlProp.GetString();
             if (!string.IsNullOrEmpty(url) && ImageExtensions.Any(ext => url.EndsWith(ext, StringComparison.OrdinalIgnoreCase)))
-                return url;
+                return WebUtility.HtmlDecode(url);
         }
 
         // Fallback to thumbnail
-        return post.TryGetProperty("thumbnail", out var thumb) ? thumb.GetString() : null;
+        if (post.TryGetProperty("thumbnail", out var thumb))
+        {
+            var url = thumb.GetString();
+            return url != null ? WebUtility.HtmlDecode(url) : null;
+        }
+        
+        return null;
     }
 }
